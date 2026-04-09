@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% set active = "trade" %}
+
+{% block content %}
+<div class="page-title">Trade</div>
+
+{% if message %}
+<div class="alert alert-success">{{ message }}</div>
+{% endif %}
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<div class="grid2">
+    <div class="card">
+        <div class="section-title">NSE Market</div>
+        <div class="search-bar">
+            <input class="search-input" id="search-input" placeholder="SEARCH TICKER — TCS, ZOMATO, ASIANPAINT..." oninput="filterStocks(this.value)"/>
+            <button class="btn btn-outline btn-sm" onclick="filterStocks(document.getElementById('search-input').value)">SEARCH</button>
+        </div>
+        <div id="stock-list">
+            {% for s in stocks %}
+            <div class="stock-row" data-ticker="{{ s.ticker }}" data-name="{{ s.company_name|lower }}">
+                <div>
+                    <div class="ticker-tag">{{ s.ticker }}</div>
+                    <div class="stock-meta">{{ s.company_name }} · {{ s.sector }}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px">
+                    <div>
+                        <div class="stock-price">₹{{ "{:,.2f}".format(s.current_price|float) }}</div>
+                    </div>
+                    <button class="btn btn-outline btn-sm"
+                        onclick="selectStock('{{ s.ticker }}', {{ s.current_price|float }}, '{{ s.company_name }}')">
+                        TRADE
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title">Order Terminal</div>
+        <div style="margin-bottom:12px">
+            <span class="stat-label">Cash Balance: </span>
+            <span class="stat-val green">₹{{ "{:,.2f}".format(user.virtual_balance|float) }}</span>
+        </div>
+
+        <form method="POST" action="/trade">
+            <div class="form-group">
+                <label class="form-label">Instrument</label>
+                <input class="form-input" id="ticker-display" value="— SELECT FROM LEFT —" readonly/>
+                <input type="hidden" name="ticker" id="ticker-val"/>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Side</label>
+                <div class="toggle-group">
+                    <button type="button" class="toggle-btn toggle-buy" id="btn-buy" onclick="setOrderType('BUY')">BUY</button>
+                    <button type="button" class="toggle-btn" id="btn-sell" onclick="setOrderType('SELL')">SELL</button>
+                </div>
+                <input type="hidden" name="order_type" id="order_type" value="BUY"/>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Quantity</label>
+                <input class="form-input" type="number" name="quantity" id="qty" value="1" min="1" oninput="calcTotal()"/>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Market Price</label>
+                <input class="form-input" id="price" readonly value="0"/>
+                <input type="hidden" name="price" id="price-hidden"/>
+            </div>
+
+            <div class="total-box">
+                <span class="total-label">Order Value</span>
+                <span class="total-val" id="total">₹0.00</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Trade Rationale (Journal)</label>
+                <textarea class="form-input" name="note" rows="3" placeholder="Document your thesis..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">EXECUTE ORDER</button>
+        </form>
+    </div>
+</div>
+
+<script>
+let currentPrice = 0;
+let searchTimeout = null;
+
+function selectStock(ticker, price, name) {
+    currentPrice = price;
+    document.getElementById('ticker-display').value = ticker + ' — ' + name;
+    document.getElementById('ticker-val').value = ticker;
+    document.getElementById('price').value = price.toFixed(2);
+    document.getElementById('price-hidden').value = price;
+    calcTotal();
+}
+
+function setOrderType(type) {
+    document.getElementById('order_type').value = type;
+    document.getElementById('btn-buy').className = 'toggle-btn' + (type === 'BUY' ? ' toggle-buy' : '');
+    document.getElementById('btn-sell').className = 'toggle-btn' + (type === 'SELL' ? ' toggle-sell' : '');
+}
+
+function calcTotal() {
+    const qty = parseInt(document.getElementById('qty').value) || 0;
+    const total = qty * currentPrice;
+    document.getElementById('total').textContent = '₹' + total.toLocaleString('en-IN', {minimumFractionDigits: 2});
+}
+
+function filterStocks(query) {
+    clearTimeout(searchTimeout);
+    query = query.trim();
+    if (query === '') {
+        document.querySelectorAll('#stock-list .stock-row').forEach(row => row.style.display = '');
+        return;
+    }
+    const q = query.toLowerCase();
+    let found = 0;
+    document.querySelectorAll('#stock-list .stock-row').forEach(row => {
+        const ticker = row.dataset.ticker.toLowerCase();
+        const name = row.dataset.name.toLowerCase();
+        if (ticker.includes(q) || name.includes(q)) {
+            row.style.display = '';
+            found++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    if (found === 0) {
+        searchTimeout = setTimeout(() => fetchFromNSE(query.toUpperCase()), 800);
+    }
+}
+
+function fetchFromNSE(ticker) {
+    const list = document.getElementById('stock-list');
+    const existing = document.getElementById('fetching-msg');
+    if (existing) existing.remove();
+    const msg = document.createElement('div');
+    msg.id = 'fetching-msg';
+    msg.style.cssText = 'padding:12px 0;font-size:12px;color:#00ff9f;letter-spacing:1px';
+    msg.textContent = 'FETCHING ' + ticker + ' FROM NSE...';
+    list.appendChild(msg);
+    fetch('/fetch_stock?ticker=' + ticker)
+        .then(r => r.json())
+        .then(data => {
+            msg.remove();
+            if (data.success) {
+                const s = data.stock;
+                const row = document.createElement('div');
+                row.className = 'stock-row';
+                row.dataset.ticker = s.ticker;
+                row.dataset.name = s.company_name.toLowerCase();
+                row.innerHTML = `
+                    <div>
+                        <div class="ticker-tag">${s.ticker}</div>
+                        <div class="stock-meta">${s.company_name} · ${s.sector}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <div>
+                            <div class="stock-price">₹${parseFloat(s.current_price).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <button class="btn btn-outline btn-sm"
+                            onclick="selectStock('${s.ticker}', ${s.current_price}, '${s.company_name}')">
+                            TRADE
+                        </button>
+                    </div>
+                `;
+                list.appendChild(row);
+            } else {
+                const err = document.createElement('div');
+                err.style.cssText = 'padding:12px 0;font-size:12px;color:#ff4444;letter-spacing:1px';
+                err.textContent = 'STOCK NOT FOUND — TRY EXACT NSE TICKER';
+                list.appendChild(err);
+            }
+        })
+        .catch(() => { msg.remove(); });
+}
+</script>
+{% endblock %}

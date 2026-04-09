@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% set active = "dashboard" %}
+
+{% block content %}
+<div class="page-title">Dashboard</div>
+
+<div class="metric-grid">
+    <div class="metric-card">
+        <div class="metric-label">Portfolio Value</div>
+        <div class="metric-val green">₹{{ "{:,.0f}".format(portfolio_value) }}</div>
+        <div class="metric-sub {% if total_pnl >= 0 %}pos{% else %}neg{% endif %}">
+            {% if total_pnl >= 0 %}+{% endif %}₹{{ "{:,.2f}".format(total_pnl) }} total return
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Unrealised P&L</div>
+        <div class="metric-val {% if total_pnl >= 0 %}pos{% else %}neg{% endif %}">
+            {% if total_pnl >= 0 %}+{% endif %}₹{{ "{:,.2f}".format(total_pnl) }}
+        </div>
+        <div class="metric-sub muted">Across all holdings</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Cash Balance</div>
+        <div class="metric-val">₹{{ "{:,.0f}".format(user.virtual_balance|float) }}</div>
+        <div class="metric-sub muted">Available to deploy</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Total Holdings</div>
+        <div class="metric-val">{{ "%03d"|format(holdings|length) }}</div>
+        <div class="metric-sub muted">Active positions</div>
+    </div>
+</div>
+
+<div class="grid2">
+    <div class="card">
+        <div class="section-title">Active Positions</div>
+        {% if holdings %}
+            {% for h in holdings %}
+            <div class="stock-row">
+                <div>
+                    <div class="ticker-tag">{{ h.ticker }}</div>
+                    <div class="stock-meta">{{ h.company_name }} · {{ h.net_quantity|int }} shares</div>
+                    <div class="stock-meta">Avg ₹{{ "{:,.2f}".format(h.avg_buy_price|float) }} · Now ₹{{ "{:,.2f}".format(h.current_price|float) }}</div>
+                </div>
+                <div>
+                    <div class="stock-price">₹{{ "{:,.2f}".format(h.current_value) }}</div>
+                    <div class="stock-change {% if h.pnl >= 0 %}pos{% else %}neg{% endif %}">
+                        {% if h.pnl >= 0 %}▲{% else %}▼{% endif %}
+                        ₹{{ "{:,.2f}".format(h.pnl|abs) }} ({{ h.pnl_pct }}%)
+                    </div>
+                    <div class="stock-meta">52W H: ₹{{ "{:,.0f}".format(h.week_52_high|float) }} · L: ₹{{ "{:,.0f}".format(h.week_52_low|float) }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="muted" style="font-size:12px;padding:20px 0">No positions yet. Go to Trade to buy your first stock.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="section-title">Recent Activity</div>
+        {% if recent %}
+            {% for r in recent %}
+            <div class="stock-row">
+                <div>
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <span class="ticker-tag">{{ r.ticker }}</span>
+                        <span class="badge badge-{{ r.transaction_type|lower }}">{{ r.transaction_type }}</span>
+                    </div>
+                    <div class="stock-meta">{{ r.quantity }} shares · {{ r.timestamp.strftime('%b %d, %Y') }}</div>
+                    <div class="stock-meta">{{ r.company_name }}</div>
+                </div>
+                <div>
+                    <div class="stock-price">₹{{ "{:,.2f}".format(r.price_at_transaction|float * r.quantity) }}</div>
+                    <div class="stock-change muted">@ ₹{{ "{:,.2f}".format(r.price_at_transaction|float) }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="muted" style="font-size:12px;padding:20px 0">No transactions yet.</p>
+        {% endif %}
+
+        <hr>
+        <div class="section-title">P&L Summary</div>
+        <div class="stat-row">
+            <span class="stat-label">Total Invested</span>
+            <span class="stat-val">₹{{ "{:,.2f}".format(total_invested) }}</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Current Value</span>
+            <span class="stat-val green">₹{{ "{:,.2f}".format(portfolio_value) }}</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Overall Return</span>
+            <span class="stat-val {% if total_pnl >= 0 %}pos{% else %}neg{% endif %}">
+                {% if total_pnl >= 0 %}+{% endif %}₹{{ "{:,.2f}".format(total_pnl) }}
+            </span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Cash Remaining</span>
+            <span class="stat-val">₹{{ "{:,.2f}".format(user.virtual_balance|float) }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% set active = "leaderboard" %}
+
+{% block content %}
+<div class="page-title">Performance Rankings</div>
+
+<div class="card">
+    <div class="section-title">All Users · Ranked by Total P&L</div>
+    {% for row in leaderboard %}
+    <div class="lb-row {% if row.user_id == current_user_id %}me{% endif %}">
+        <div class="lb-rank {% if loop.index == 1 %}gold{% elif loop.index == 2 %}silver{% elif loop.index == 3 %}bronze{% endif %}">
+            #{{ loop.index }}
+        </div>
+        <div style="flex:1">
+            <div style="font-size:13px;font-weight:700;color:{% if row.user_id == current_user_id %}#00ff9f{% else %}#ffffff{% endif %};letter-spacing:0.5px">
+                {{ row.name|upper }}
+                {% if row.user_id == current_user_id %}
+                <span style="font-size:10px;color:#555;font-weight:400"> ← YOU</span>
+                {% endif %}
+            </div>
+            <div class="stock-meta">{{ row.total_trades }} trades</div>
+        </div>
+        <div style="text-align:right">
+            <div style="font-size:15px;font-weight:700;color:{% if row.total_pnl >= 0 %}#00ff9f{% else %}#ff4444{% endif %}">
+                {% if row.total_pnl >= 0 %}+{% endif %}₹{{ "{:,.2f}".format(row.total_pnl|float) }}
+            </div>
+            <div class="stock-change {% if row.return_pct >= 0 %}pos{% else %}neg{% endif %}">
+                {% if row.return_pct >= 0 %}+{% endif %}{{ row.return_pct }}% return
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% for row in leaderboard %}
+{% if row.user_id == current_user_id %}
+<div class="card" style="margin-top:1px">
+    <div class="section-title">Your Stats</div>
+    <div class="metric-grid" style="margin-bottom:0">
+        <div class="metric-card">
+            <div class="metric-label">Your Rank</div>
+            <div class="metric-val green">#{{ loop.index }} of {{ leaderboard|length }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Total P&L</div>
+            <div class="metric-val {% if row.total_pnl >= 0 %}pos{% else %}neg{% endif %}">
+                {% if row.total_pnl >= 0 %}+{% endif %}₹{{ "{:,.2f}".format(row.total_pnl|float) }}
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Return</div>
+            <div class="metric-val {% if row.return_pct >= 0 %}pos{% else %}neg{% endif %}">
+                {% if row.return_pct >= 0 %}+{% endif %}{{ row.return_pct }}%
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Total Trades</div>
+            <div class="metric-val">{{ "%03d"|format(row.total_trades) }}</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

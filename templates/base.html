@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockSikho</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
+        body { background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+
+        /* NAV */
+        .nav { background: #0a0a0a; border-bottom: 1px solid #222; padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .nav-logo { color: #00ff9f; font-size: 16px; font-weight: 700; letter-spacing: 3px; display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .nav-logo-bar { width: 3px; height: 18px; background: #00ff9f; }
+        .nav-tabs { display: flex; }
+        .nav-tab { background: transparent; border: none; border-bottom: 2px solid transparent; color: #666; font-size: 11px; padding: 0 16px; height: 52px; cursor: pointer; letter-spacing: 1.5px; font-weight: 700; text-decoration: none; display: flex; align-items: center; transition: all 0.15s; font-family: 'Courier New', monospace; }
+        .nav-tab:hover { color: #00ff9f; }
+        .nav-tab.active { color: #00ff9f; border-bottom: 2px solid #00ff9f; }
+        .nav-right { display: flex; align-items: center; gap: 16px; }
+        .nav-clock { color: #666; font-size: 11px; letter-spacing: 1px; }
+        .nav-clock.live { color: #00ff9f; }
+        .nav-user { color: #00ff9f; font-size: 11px; font-weight: 700; border: 1px solid #00ff9f; padding: 4px 12px; letter-spacing: 1px; }
+        .nav-logout { color: #666; font-size: 11px; letter-spacing: 1px; text-decoration: none; padding: 4px 10px; border: 1px solid #333; transition: all 0.15s; }
+        .nav-logout:hover { color: #ff4444; border-color: #ff4444; }
+
+        /* TICKER BAR */
+        .ticker-bar { background: #0d0d0d; border-bottom: 1px solid #1a1a1a; padding: 8px 24px; display: flex; gap: 28px; overflow-x: auto; }
+        .ticker-bar::-webkit-scrollbar { display: none; }
+        .ticker-item { display: flex; gap: 8px; align-items: center; white-space: nowrap; }
+        .ticker-name { color: #666; font-size: 11px; letter-spacing: 1px; }
+        .ticker-price { color: #e0e0e0; font-size: 11px; font-weight: 700; }
+        .ticker-pos { color: #00ff9f; font-size: 11px; }
+        .ticker-neg { color: #ff4444; font-size: 11px; }
+
+        /* MAIN */
+        .main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+
+        /* METRIC GRID */
+        .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-bottom: 20px; background: #222; border: 1px solid #222; }
+        .metric-card { background: #0f0f0f; padding: 18px; }
+        .metric-label { font-size: 10px; color: #aaa; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
+        .metric-val { font-size: 22px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; }
+        .metric-val.green { color: #00ff9f; }
+        .metric-sub { font-size: 12px; margin-top: 5px; }
+
+        /* GRID */
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #1a1a1a; margin-bottom: 16px; }
+        .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: #1a1a1a; margin-bottom: 16px; }
+
+        /* CARD */
+        .card { background: #0f0f0f; border: 1px solid #1a1a1a; padding: 18px; }
+        .section-title { font-size: 10px; font-weight: 700; color: #00ff9f; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #1a1a1a; }
+
+        /* STOCK ROWS */
+        .stock-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #111; }
+        .stock-row:last-child { border-bottom: none; }
+        .ticker-tag { font-size: 13px; font-weight: 700; color: #00ff9f; letter-spacing: 1px; }
+        .stock-meta { font-size: 11px; color: #666; margin-top: 3px; }
+        .stock-price { font-size: 14px; font-weight: 700; color: #ffffff; text-align: right; }
+        .stock-change { font-size: 11px; text-align: right; margin-top: 2px; }
+
+        /* BADGES */
+        .badge { display: inline-block; padding: 1px 8px; font-size: 10px; font-weight: 700; letter-spacing: 1px; border: 1px solid; }
+        .badge-buy { color: #00ff9f; border-color: #00ff9f; background: #001a0f; }
+        .badge-sell { color: #ff4444; border-color: #ff4444; background: #1a0000; }
+        .badge-hit { color: #00ff9f; border-color: #00ff9f; background: #001a0f; }
+        .badge-pending { color: #aaa; border-color: #333; background: transparent; }
+
+        /* COLORS */
+        .pos { color: #00ff9f; }
+        .neg { color: #ff4444; }
+        .muted { color: #666; }
+        .white { color: #ffffff; }
+
+        /* FORMS */
+        .form-group { margin-bottom: 14px; }
+        .form-label { font-size: 10px; color: #aaa; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; display: block; font-weight: 700; }
+        .form-input { width: 100%; padding: 9px 12px; border: 1px solid #222; font-size: 12px; background: #0a0a0a; color: #e0e0e0; outline: none; font-family: 'Courier New', monospace; transition: border 0.15s; }
+        .form-input:focus { border-color: #00ff9f; }
+        select.form-input { cursor: pointer; }
+        textarea.form-input { resize: vertical; min-height: 80px; }
+
+        /* BUTTONS */
+        .btn { padding: 10px 20px; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; cursor: pointer; font-family: 'Courier New', monospace; transition: opacity 0.15s; text-transform: uppercase; border: none; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #00ff9f; color: #0a0a0a; }
+        .btn-primary:hover { opacity: 0.85; }
+        .btn-outline { background: transparent; color: #00ff9f; border: 1px solid #00ff9f; }
+        .btn-outline:hover { background: #00ff9f; color: #0a0a0a; }
+        .btn-danger { background: transparent; color: #ff4444; border: 1px solid #ff4444; }
+        .btn-danger:hover { background: #ff4444; color: #0a0a0a; }
+        .btn-sm { padding: 5px 12px; font-size: 10px; }
+        .btn-full { width: 100%; text-align: center; }
+
+        /* TOGGLE */
+        .toggle-group { display: flex; gap: 0; margin-bottom: 14px; }
+        .toggle-btn { flex: 1; padding: 9px; border: 1px solid #222; background: transparent; font-size: 11px; cursor: pointer; color: #666; font-family: 'Courier New', monospace; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .toggle-buy { background: #001a0f; color: #00ff9f; border-color: #00ff9f; }
+        .toggle-sell { background: #1a0000; color: #ff4444; border-color: #ff4444; }
+
+        /* TOTAL BOX */
+        .total-box { background: #0a0a0a; border: 1px solid #00ff9f; padding: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .total-label { font-size: 10px; color: #aaa; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
+        .total-val { font-size: 18px; font-weight: 700; color: #00ff9f; }
+
+        /* PROGRESS BAR */
+        .progress-bar { height: 3px; background: #1a1a1a; margin-top: 8px; }
+        .progress-fill { height: 100%; background: #00ff9f; transition: width 0.3s; }
+
+        /* JOURNAL */
+        .journal-entry { padding: 14px; background: #0a0a0a; border-left: 2px solid #00ff9f; margin-bottom: 10px; border-top: 1px solid #1a1a1a; border-right: 1px solid #1a1a1a; border-bottom: 1px solid #1a1a1a; }
+        .journal-entry.sell { border-left-color: #ff4444; }
+        .journal-date { font-size: 10px; color: #aaa; letter-spacing: 1px; margin-bottom: 6px; font-weight: 700; text-transform: uppercase; }
+        .journal-text { font-size: 12px; color: #999; line-height: 1.7; }
+
+        /* ALERTS */
+        .alert { padding: 12px 16px; margin-bottom: 16px; font-size: 12px; letter-spacing: 0.5px; border-left: 2px solid; }
+        .alert-success { background: #0f1a0f; border-color: #00ff9f; color: #00ff9f; }
+        .alert-error { background: #1a0f0f; border-color: #ff4444; color: #ff4444; }
+
+        /* LEADERBOARD */
+        .lb-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #111; }
+        .lb-row:last-child { border-bottom: none; }
+        .lb-row.me { background: #0f1a0f; padding: 12px; margin: 0 -18px; }
+        .lb-rank { width: 40px; font-size: 14px; font-weight: 700; color: #666; flex-shrink: 0; }
+        .lb-rank.gold { color: #00ff9f; }
+        .lb-rank.silver { color: #aaa; }
+        .lb-rank.bronze { color: #ffaa00; }
+
+        /* STAT ROW */
+        .stat-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #111; }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-label { font-size: 12px; color: #aaa; font-weight: 700; }
+        .stat-val { font-size: 13px; font-weight: 700; color: #ffffff; }
+
+        /* WATCHLIST ROW */
+        .watch-row { padding: 12px 0; border-bottom: 1px solid #111; }
+        .watch-row:last-child { border-bottom: none; }
+        .watch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .watch-meta { font-size: 11px; color: #666; margin-top: 4px; }
+
+        /* DIVIDER */
+        hr { border: none; border-top: 1px solid #1a1a1a; margin: 16px 0; }
+
+        /* PAGE TITLE */
+        .page-title { font-size: 18px; font-weight: 700; color: #ffffff; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #222; }
+
+        /* SEARCH */
+        .search-bar { display: flex; gap: 0; margin-bottom: 16px; }
+        .search-input { flex: 1; padding: 10px 14px; border: 1px solid #222; font-size: 12px; background: #0a0a0a; color: #e0e0e0; outline: none; font-family: 'Courier New', monospace; letter-spacing: 0.5px; }
+        .search-input:focus { border-color: #00ff9f; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; }
+        ::-webkit-scrollbar-thumb:hover { background: #00ff9f; }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <a href="/dashboard" class="nav-logo">
+        <div class="nav-logo-bar"></div>
+        STOCKSIKHO
+    </a>
+    <div class="nav-tabs">
+        <a href="/dashboard" class="nav-tab {% if active == 'dashboard' %}active{% endif %}">DASHBOARD</a>
+        <a href="/trade" class="nav-tab {% if active == 'trade' %}active{% endif %}">TRADE</a>
+        <a href="/watchlist" class="nav-tab {% if active == 'watchlist' %}active{% endif %}">WATCHLIST</a>
+        <a href="/journal" class="nav-tab {% if active == 'journal' %}active{% endif %}">JOURNAL</a>
+        <a href="/leaderboard" class="nav-tab {% if active == 'leaderboard' %}active{% endif %}">LEADERBOARD</a>
+    </div>
+    <div class="nav-right">
+        <span class="nav-clock" id="clock">NSE CLOSED</span>
+        <span class="nav-user">{{ session.user_name[:2].upper() if session.user_name else 'XX' }}</span>
+        <a href="/logout" class="nav-logout">LOGOUT</a>
+    </div>
+</nav>
+
+{% for s in ticker_stocks %}
+<div class="ticker-item">
+    <span class="ticker-name">{{ s['ticker'] }}</span>
+    <span class="ticker-price">{{ "%.2f"|format(s['current_price']|float) }}</span>
+</div>
+{% endfor %}
+</div>
+
+<div class="main">
+    {% block content %}{% endblock %}
+</div>
+
+<script>
+function updateClock() {
+    const ist = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Kolkata'}));
+    const h = ist.getHours(), m = ist.getMinutes();
+    const open = h >= 9 && (h < 15 || (h === 15 && m <= 30));
+    const t = ist.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'});
+    const el = document.getElementById('clock');
+    if (el) {
+        el.textContent = (open ? 'NSE LIVE · ' : 'NSE CLOSED · ') + t + ' IST';
+        el.className = open ? 'nav-clock live' : 'nav-clock';
+    }
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+function calcTotal() {
+    const qty = parseInt(document.getElementById('qty')?.value) || 0;
+    const price = parseFloat(document.getElementById('price')?.value) || 0;
+    const total = qty * price;
+    const el = document.getElementById('total');
+    if (el) el.textContent = '₹' + total.toLocaleString('en-IN', {minimumFractionDigits: 2});
+}
+
+function setOrderType(type) {
+    document.getElementById('order_type').value = type;
+    document.getElementById('btn-buy').className = 'toggle-btn' + (type === 'BUY' ? ' toggle-buy' : '');
+    document.getElementById('btn-sell').className = 'toggle-btn' + (type === 'SELL' ? ' toggle-sell' : '');
+}
+</script>
+
+</body>
+</html>

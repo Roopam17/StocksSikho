@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% set active = "watchlist" %}
+
+{% block content %}
+<div class="page-title">Watchlist</div>
+
+{% if watchlist %}
+{% set triggered = watchlist | selectattr('alert_status', 'eq', 'TRIGGERED') | list %}
+{% if triggered %}
+<div class="alert alert-success">
+    TARGET HIT — {{ triggered|length }} stock(s) reached your target price!
+</div>
+{% endif %}
+{% endif %}
+
+<div class="grid2">
+    <div class="card">
+        <div class="section-title">Price Alerts</div>
+        {% if watchlist %}
+            {% for w in watchlist %}
+            <div class="watch-row">
+                <div class="watch-header">
+                    <span class="ticker-tag {% if w.alert_status == 'TRIGGERED' %}pos{% endif %}">
+                        {{ w.ticker }}
+                    </span>
+                    <div style="display:flex;align-items:center;gap:10px">
+                        {% if w.alert_status == 'TRIGGERED' %}
+                            <span class="badge badge-hit">TARGET HIT</span>
+                        {% else %}
+                            <span class="badge badge-pending">PENDING</span>
+                        {% endif %}
+                        <a href="/remove_watchlist/{{ w.watchlist_id }}" class="btn btn-danger btn-sm">REMOVE</a>
+                    </div>
+                </div>
+                <div class="watch-meta">{{ w.company_name }}</div>
+                <div class="watch-meta">
+                    Current ₹{{ "{:,.2f}".format(w.current_price|float) }} ·
+                    Target ₹{{ "{:,.2f}".format(w.target_price|float) }} ·
+                    {{ w.progress }}% of target
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width:{{ [w.progress|float, 100]|min }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="muted" style="font-size:12px;padding:20px 0">No stocks in watchlist yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="section-title">Set New Alert</div>
+        <form method="POST" action="/watchlist">
+            <div class="form-group">
+                <label class="form-label">Select Stock</label>
+                <select class="form-input" name="ticker" id="watch-ticker" onchange="updateCurrentPrice(this)">
+                    <option value="">— Select a stock —</option>
+                    {% for s in stocks %}
+                    <option value="{{ s.ticker }}" data-price="{{ s.current_price|float }}">
+                        {{ s.ticker }} — {{ s.company_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Current Price</label>
+                <input class="form-input" id="current-price-display" readonly value="—"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Target Price (₹)</label>
+                <input class="form-input" type="number" name="target_price" 
+                       id="target-price" step="0.01" min="0.01" placeholder="0.00"/>
+            </div>
+            <div id="upside-display" style="font-size:11px;color:#666;margin-bottom:14px;letter-spacing:0.5px"></div>
+            <button type="submit" class="btn btn-primary btn-full">SET ALERT</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function updateCurrentPrice(select) {
+    const price = parseFloat(select.options[select.selectedIndex].dataset.price) || 0;
+    document.getElementById('current-price-display').value = price > 0 ? '₹' + price.toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—';
+    document.getElementById('target-price').value = (price * 1.1).toFixed(2);
+    updateUpside(price);
+}
+
+function updateUpside(currentPrice) {
+    const target = parseFloat(document.getElementById('target-price').value) || 0;
+    if (currentPrice > 0 && target > 0) {
+        const upside = (((target - currentPrice) / currentPrice) * 100).toFixed(1);
+        const el = document.getElementById('upside-display');
+        el.textContent = 'Expected upside: ' + (upside >= 0 ? '+' : '') + upside + '%';
+        el.style.color = upside >= 0 ? '#00ff9f' : '#ff4444';
+    }
+}
+
+document.getElementById('target-price')?.addEventListener('input', function() {
+    const select = document.getElementById('watch-ticker');
+    const price = parseFloat(select.options[select.selectedIndex]?.dataset.price) || 0;
+    updateUpside(price);
+});
+</script>
+{% endblock %}

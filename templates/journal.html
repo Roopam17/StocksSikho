@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% set active = "journal" %}
+
+{% block content %}
+<div class="page-title">Trading Journal</div>
+
+<div class="grid2">
+    <div class="card">
+        <div class="section-title">Trade Log</div>
+        {% if entries %}
+            {% for e in entries %}
+            <div class="journal-entry {% if e.transaction_type == 'SELL' %}sell{% endif %}">
+                <div class="journal-date">
+                    {{ e.created_at.strftime('%Y-%m-%d · %H:%M') }} ·
+                    {{ e.ticker }} ·
+                    {{ e.transaction_type }} ·
+                    {{ e.quantity }} shares @ ₹{{ "{:,.2f}".format(e.price_at_transaction|float) }}
+                </div>
+                <div class="journal-text">{{ e.note_text }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="muted" style="font-size:12px;padding:20px 0">No journal entries yet. Write your first note when you make a trade.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="section-title">New Entry</div>
+        {% if transactions %}
+        <form method="POST" action="/journal">
+            <div class="form-group">
+                <label class="form-label">Link to Trade</label>
+                <select class="form-input" name="transaction_id">
+                    {% for t in transactions %}
+                    <option value="{{ t.transaction_id }}">
+                        {{ t.transaction_type }} {{ t.quantity }} {{ t.ticker }} @ ₹{{ "{:,.2f}".format(t.price_at_transaction|float) }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Your Analysis</label>
+                <textarea class="form-input" name="note_text" rows="10"
+                    placeholder="Document your reasoning, thesis, and key observations..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">SAVE ENTRY</button>
+        </form>
+        {% else %}
+            <p class="muted" style="font-size:12px;padding:20px 0">Make a trade first to write journal notes.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

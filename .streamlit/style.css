@@ -1,0 +1,189 @@
+* {
+    font-family: 'Courier New', Courier, monospace !important;
+}
+
+.stApp, .stApp > * {
+    background-color: #0a0a0a !important;
+}
+
+section[data-testid="stSidebar"] {
+    background-color: #0f0f0f !important;
+    border-right: 1px solid #222 !important;
+}
+
+section[data-testid="stSidebar"] * {
+    color: #aaa !important;
+    font-family: 'Courier New', monospace !important;
+}
+
+section[data-testid="stSidebar"] .stButton button {
+    background-color: #00ff9f !important;
+    color: #0a0a0a !important;
+    border-radius: 0px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1px !important;
+    border: none !important;
+}
+
+div[data-testid="metric-container"] {
+    background-color: #0f0f0f !important;
+    border: 1px solid #222 !important;
+    border-radius: 0px !important;
+    padding: 16px !important;
+}
+
+div[data-testid="metric-container"] label {
+    color: #aaa !important;
+    font-size: 11px !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    font-weight: 700 !important;
+}
+
+div[data-testid="metric-container"] [data-testid="stMetricValue"] {
+    color: #00ff9f !important;
+    font-size: 22px !important;
+    font-weight: 700 !important;
+}
+
+div[data-testid="metric-container"] [data-testid="stMetricDelta"] {
+    color: #00ff9f !important;
+}
+
+h1 {
+    color: #ffffff !important;
+    letter-spacing: 3px !important;
+    text-transform: uppercase !important;
+    font-size: 20px !important;
+}
+
+h2, h3 {
+    color: #00ff9f !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    font-size: 12px !important;
+}
+
+p, span, label, div {
+    font-family: 'Courier New', monospace !important;
+}
+
+.stButton > button {
+    background-color: #00ff9f !important;
+    color: #0a0a0a !important;
+    border: none !important;
+    border-radius: 0px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase !important;
+    font-family: 'Courier New', monospace !important;
+    padding: 10px 20px !important;
+}
+
+.stButton > button:hover {
+    opacity: 0.85 !important;
+    background-color: #00ff9f !important;
+    color: #0a0a0a !important;
+}
+
+.stTextInput > div > div > input,
+.stNumberInput > div > div > input,
+.stTextArea > div > div > textarea,
+.stSelectbox > div > div > div {
+    background-color: #0a0a0a !important;
+    border: 1px solid #333 !important;
+    border-radius: 0px !important;
+    color: #e0e0e0 !important;
+    font-family: 'Courier New', monospace !important;
+}
+
+.stTextInput > div > div > input:focus,
+.stNumberInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus {
+    border-color: #00ff9f !important;
+    box-shadow: none !important;
+}
+
+.stTabs [data-baseweb="tab-list"] {
+    background-color: #0a0a0a !important;
+    border-bottom: 1px solid #222 !important;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background-color: transparent !important;
+    color: #666 !important;
+    font-size: 11px !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    font-weight: 700 !important;
+    border-bottom: 2px solid transparent !important;
+}
+
+.stTabs [aria-selected="true"] {
+    color: #00ff9f !important;
+    border-bottom: 2px solid #00ff9f !important;
+    background-color: transparent !important;
+}
+
+.stTabs [data-baseweb="tab-panel"] {
+    background-color: #0a0a0a !important;
+}
+
+hr {
+    border-color: #222 !important;
+}
+
+.stAlert {
+    border-radius: 0px !important;
+    background-color: #0f1a0f !important;
+    border: 1px solid #222 !important;
+    border-left: 2px solid #00ff9f !important;
+}
+
+.stSuccess {
+    background-color: #0f1a0f !important;
+    border-left: 2px solid #00ff9f !important;
+}
+
+.stError {
+    background-color: #1a0f0f !important;
+    border-left: 2px solid #ff4444 !important;
+}
+
+[data-testid="stCaption"] {
+    color: #666 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.5px !important;
+}
+
+.stRadio > label {
+    color: #aaa !important;
+    font-size: 12px !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase !important;
+}
+
+.stMarkdown {
+    color: #aaa !important;
+}
+
+[data-testid="stHeader"] {
+    background-color: #0a0a0a !important;
+    border-bottom: 1px solid #222 !important;
+}
+
+[data-testid="stToolbar"] {
+    background-color: #0a0a0a !important;
+}
+
+.stSpinner > div {
+    border-top-color: #00ff9f !important;
+}
+
+div[data-testid="stVerticalBlock"] {
+    background-color: #0a0a0a !important;
+}
+
+.element-container {
+    background-color: transparent !important;
+}
