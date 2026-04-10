@@ -79,6 +79,32 @@ def logout():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
+
+    try:
+        from stock_service import get_live_price
+        conn_temp = get_connection()
+        cursor_temp = conn_temp.cursor(dictionary=True)
+        cursor_temp.execute("""
+            SELECT DISTINCT ticker FROM TRANSACTIONS
+            WHERE user_id = %s
+        """, (session['user_id'],))
+        user_tickers = cursor_temp.fetchall()
+        cursor_temp.close()
+        conn_temp.close()
+
+        conn_temp = get_connection()
+        cursor_temp = conn_temp.cursor()
+        for t in user_tickers:
+            price = get_live_price(t['ticker'])
+            cursor_temp.execute("""
+                UPDATE STOCKS SET current_price = %s WHERE ticker = %s
+            """, (price, t['ticker']))
+        conn_temp.commit()
+        cursor_temp.close()
+        conn_temp.close()
+    except Exception as e:
+        print(f"Price update error: {e}")
+
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM USERS WHERE user_id = %s", (session['user_id'],))
@@ -229,6 +255,8 @@ def fetch_stock():
         nse_ticker = ticker + ".NS"
         data = yf.Ticker(nse_ticker)
         hist = data.history(period="5d")
+        if hist is None or hist.empty:
+            return jsonify({'success': False})
         hist_clean = hist.dropna(subset=['Close'])
         if hist_clean.empty:
             return jsonify({'success': False})
@@ -383,5 +411,4 @@ def leaderboard():
                            current_user_id=session['user_id'])
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
-    
+    app.run(debug=True, port=3000, host='0.0.0.0')
