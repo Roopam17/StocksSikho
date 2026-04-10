@@ -1,18 +1,12 @@
 import mysql.connector
+import os
 
 def get_connection():
     conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="stocksikho"
+        host=os.environ.get('MYSQLHOST', 'localhost'),
+        port=int(os.environ.get('MYSQLPORT', 3306)),
+        user=os.environ.get('MYSQLUSER', 'root'),
+        password=os.environ.get('MYSQLPASSWORD', ''),
+        database=os.environ.get('MYSQLDATABASE', 'stocksikho')
     )
     return conn
-
-def init_db():
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("USE stocksikho")
-    conn.commit()
-    cursor.close()
-    conn.close()
